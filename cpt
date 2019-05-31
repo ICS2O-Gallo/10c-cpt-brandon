@@ -13,7 +13,15 @@ p2_y = 100
 bullet2_x = p2_x
 bullet2_y = p2_y
 
-p1current_health = 50
+p1gun_x = 100
+
+p2gun_x = 1260
+
+
+
+p1current_health = 100
+
+p2current_health = -100
 
 space_pressed = False
 
@@ -43,11 +51,27 @@ current_screen = 'menue'
 
 def menue_screen(screen):
     arcade.draw_text('unreal tournement 2019', WIDTH / 2 - 250, HEIGHT / 2 + 200, arcade.color.ORANGE, 30),
-    arcade.draw_text('instructions',WIDTH/2 - 150,HEIGHT/2 - 200,arcade.color.ORANGE,30),
-    arcade.draw_text('play',WIDTH/2 - 85,HEIGHT/2,arcade.color.ORANGE,30)
+    arcade.draw_text('press i for instructions',WIDTH/2 - 200,HEIGHT/2 - 200,arcade.color.ORANGE,30),
+    arcade.draw_text('press p to play',WIDTH/2 - 150,HEIGHT/2,arcade.color.ORANGE,30)
 
 def player1_healthbar(health):
-    arcade.draw_xywh_rectangle_filled(0,HEIGHT,p1current_health,-20,arcade.color.GREEN)
+    arcade.draw_xywh_rectangle_filled(0, HEIGHT, 100, -20, arcade.color.RED),
+    arcade.draw_xywh_rectangle_filled(0,HEIGHT,p1current_health,-20,arcade.color.GREEN),
+    arcade.draw_text('player1',0,HEIGHT - 35,arcade.color.BLACK)
+
+def player2_healthbar(health):
+    arcade.draw_xywh_rectangle_filled(WIDTH,HEIGHT,-100,-20,arcade.color.RED),
+    arcade.draw_xywh_rectangle_filled(WIDTH,HEIGHT,p2current_health,-20,arcade.color.GREEN),
+    arcade.draw_text('player2',WIDTH-60,HEIGHT- 35,arcade.color.BLACK)
+
+def instruction_screen(instructions):
+    arcade.draw_text('for player1 use WASD keys to move. for player 2 use the arrow keys',0,HEIGHT/1.5,arcade.color.BLACK,25),
+    arcade.draw_text('for player 1 you fire with q. for player 2 you fire with space',0,HEIGHT/1.9,arcade.color.BLACK,25),
+    arcade.draw_text('if your health gets too low you disapear',0,HEIGHT/2.3,arcade.color.BLACK,25)
+    arcade.draw_text('have fun',0,HEIGHT/2.7,arcade.color.BLACK,25)
+
+
+
 
 
 
@@ -65,13 +89,14 @@ player1_halthbar =  arcade.draw_xywh_rectangle_filled(0,HEIGHT,50,-20,arcade.col
 
 menue = arcade.draw_text('unreal tournement 2019',WIDTH/2,HEIGHT/2,arcade.color.ORANGE,30)
 
+player2_halthbar = arcade.draw_xywh_rectangle_filled(WIDTH,HEIGHT,-50,-20,arcade.color.GREEN)
 
 
 player_2 = arcade.draw_xywh_rectangle_filled(p2_x,p2_y,20,50,arcade.color.RED),\
            arcade.draw_circle_filled(p2_x + 10,p2_y+ 50,20,arcade.color.BLACK),\
            arcade.draw_xywh_rectangle_filled(p2_x,p2_y+30,10,5,arcade.color.BLACK)
 
-
+instructions = arcade.draw_text('for player1 use WASD keys to move. for player 2 use the arrow keys',WIDTH/2,HEIGHT/2,arcade.color.BLACK,30)
 
 
 def update(delta_time):
@@ -93,6 +118,12 @@ def update(delta_time):
     global player1_health
     global player2_alive
     global player2_health
+    global p1current_health
+    global p2current_health
+    global current_screen
+    global p1gun_x
+    global p2gun_x
+    global WIDTH
 
     if current_screen == 'menue':
         player1_health = 5
@@ -100,9 +131,13 @@ def update(delta_time):
         player2_health = 5
         player2_alive = True
 
+    if current_screen == 'Instructions':
+        player1_alive = True
 
 
-    if p2_up == True:
+
+
+    if p2_up == True  :
         p2_y += 7
 
     if p2_down == True:
@@ -131,15 +166,23 @@ def update(delta_time):
         bullet1[1] += 0
 
     for bullet1 in bullet_list1:
-        if bullet1[0] in range (p1_x, p1_x + 20) and  bullet1[1] in range (p1_y -20 , p1_y + 50 ):
+        if bullet1[0] in range (p1_x, p1_x + 20) and  bullet1[1] in range (p1_y -20 , p1_y + 50 ) and current_screen == 'Game':
             player1_health -= 1
+            p1current_health -= 20
+
+
+
+
+
+
 
     if player1_health == 0:
         player1_alive = False
 
     for bullet2 in bullet_list2:
-        if bullet2[0] in range(p2_x, p2_x + 20) and bullet2[1] in range(p2_y - 20, p2_y + 50):
+        if bullet2[0] in range(p2_x, p2_x + 20) and bullet2[1] in range(p2_y - 20, p2_y + 50) and current_screen == 'Game':
             player2_health -= 1
+            p2current_health += 20
 
     if player2_health == 0:
         player2_alive = False
@@ -148,6 +191,12 @@ def update(delta_time):
         bullet2[0] += 20
         bullet2[1] += 0
 
+    if current_screen == 'end':
+        p1current_health = 100
+        p2current_health = -100
+
+    if player1_alive == False or player2_alive == False:
+        current_screen = 'end'
 
 
 
@@ -159,10 +208,19 @@ def on_draw():
         global bullet_list2
 
         arcade.start_render()
+        if current_screen == 'Game':
+            player1_healthbar(player1_halthbar)
+            player2_healthbar(player2_halthbar)
 
-        player1_healthbar(player1_halthbar)
-
-
+        if current_screen == 'Instructions':
+            instruction_screen(instructions)
+            arcade.set_background_color(arcade.color.WHITE)
+            draw_player1(player_1)
+            draw_player2(player_2)
+            for bullet1 in bullet_list1:
+                arcade.draw_xywh_rectangle_filled(bullet1[0], bullet1[1] + 20, 40, 5, arcade.color.RED)
+            for bullet2 in bullet_list2:
+                arcade.draw_xywh_rectangle_filled(bullet2[0] - 10, bullet2[1] + 20, 40, 5, arcade.color.BLUE)
 
         if current_screen == 'Game':
             if player1_alive == True:
@@ -185,14 +243,14 @@ def on_draw():
                 for bullet2 in bullet_list2:
                     arcade.draw_xywh_rectangle_filled(bullet2[0] - 10,bullet2[1] + 20, 40, 5, arcade.color.BLUE)
 
-
+        if current_screen == 'end':
             if player2_alive == False:
                 arcade.draw_xywh_rectangle_filled(0,0,WIDTH,HEIGHT,arcade.color.BLACK)
-                arcade.draw_text('player 1 wins',WIDTH/2 - 250,HEIGHT/2,arcade.color.RED,30)
+                arcade.draw_text('player 1 wins press Escape to go to menue',WIDTH/2 -100 - 250,HEIGHT/2,arcade.color.RED,30)
 
-            elif player1_alive == False:
+            if player1_alive == False:
                 arcade.draw_xywh_rectangle_filled(0,0,WIDTH,HEIGHT,arcade.color.BLACK)
-                arcade.draw_text('player 2 wins', WIDTH/2 - 250, HEIGHT / 2, arcade.color.RED,30)
+                arcade.draw_text('player 2 wins press Escape to go to menue', WIDTH/2 - 100 - 250, HEIGHT / 2, arcade.color.RED,30)
 
 
 
@@ -220,11 +278,13 @@ def on_key_press(key, modifiers):
     if key == arcade.key.ESCAPE:
         current_screen = 'menue'
 
-    if key == arcade.key.P:
+    if key == arcade.key.P and current_screen == 'menue':
         current_screen = 'Game'
+    if key == arcade.key.I:
+        current_screen = 'Instructions'
 
 
-    if current_screen == 'Game':
+    if current_screen == 'Game' or current_screen == 'Instructions':
         if key == arcade.key.SPACE:
             bullet_list1.append([p2_x,p2_y])
         if key == arcade.key.Q:
@@ -257,11 +317,6 @@ def on_key_press(key, modifiers):
 def on_key_release(key, modifiers):
     global space_pressed
     global q_pressed
-    if key == arcade.key.SPACE:
-        space_pressed = False
-
-    if key == arcade.key.Q:
-        q_pressed = False
     global p1_y
     global p1_x
     global p1_up
@@ -291,6 +346,12 @@ def on_key_release(key, modifiers):
         p1_left = False
     if key == arcade.key.D:
         p1_right = False
+
+    if key == arcade.key.SPACE:
+        space_pressed = False
+
+    if key == arcade.key.Q:
+        q_pressed = False
 
 
 def on_mouse_press(x, y, button, modifiers):
@@ -323,46 +384,15 @@ def setup():
 
 def draw_player1(player):
     arcade.draw_xywh_rectangle_filled(p1_x, p1_y, 20, 50, arcade.color.BLUE), \
-    arcade.draw_circle_filled(p1_x + 10, p1_y +50 , 20, arcade.color.BLACK), \
-    arcade.draw_xywh_rectangle_filled(p1_x +20 , p1_y + 20, 10, 5, arcade.color.BLACK)
+    arcade.draw_circle_filled(p1_x  + 10, p1_y +50 , 20, arcade.color.BLACK), \
+    arcade.draw_xywh_rectangle_filled( p1_x +20 , p1_y + 20, 10, 5, arcade.color.BLACK)
 
 
 def draw_player2(player):
     arcade.draw_xywh_rectangle_filled(p2_x, p2_y, 20, 50, arcade.color.RED), \
     arcade.draw_circle_filled(p2_x + 10, p2_y + 50, 20, arcade.color.BLACK), \
-    arcade.draw_xywh_rectangle_filled(p2_x - 10, p2_y + 20, 10, 5, arcade.color.BLACK)
+    arcade.draw_xywh_rectangle_filled(p2_x  - 10, p2_y + 20, 10, 5, arcade.color.BLACK)
 
-def player1_movement_press(key):
-    global p1_y
-    global p1_x
-    global p1_up
-    global p1_down
-    global p1_right
-    global p1_left
-    if key == arcade.key.UP:
-        p1_up = True
-    if key == arcade.key.DOWN:
-        p1_down = True
-    if key == arcade.key.LEFT:
-        p1_left = True
-    if key == arcade.key.RIGHT:
-        p1_right = True
-
-def player1_movement_release(key):
-    global p1_y
-    global p1_x
-    global p1_up
-    global p1_down
-    global p1_right
-    global p1_left
-    if key == arcade.key.UP:
-        p1_up = False
-    if key == arcade.key.DOWN:
-        p1_down = False
-    if key == arcade.key.LEFT:
-        p1_left = False
-    if key == arcade.key.RIGHT:
-        p1_right = False
 
 
 
