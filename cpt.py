@@ -3,11 +3,24 @@ import arcade
 WIDTH = 1360
 HEIGHT = 700
 
+p1_reload_time = False
+
+p2_reload_time = False
+
+
 p1_x = 100
 p1_y = 100
 
 p2_x = 1260
-p2_y = 100
+p2_y = 600
+
+p1_mag = 10
+
+p2_mag = 10
+
+RCTRL_pressed = False
+
+G_pressed = False
 
 
 bullet2_x = p2_x
@@ -57,16 +70,16 @@ def menue_screen(screen):
 def player1_healthbar(health):
     arcade.draw_xywh_rectangle_filled(0, HEIGHT, 100, -20, arcade.color.RED),
     arcade.draw_xywh_rectangle_filled(0,HEIGHT,p1current_health,-20,arcade.color.GREEN),
-    arcade.draw_text('player1',0,HEIGHT - 35,arcade.color.BLACK)
+    arcade.draw_text('player2',0,HEIGHT - 35,arcade.color.BLACK)
 
 def player2_healthbar(health):
     arcade.draw_xywh_rectangle_filled(WIDTH,HEIGHT,-100,-20,arcade.color.RED),
     arcade.draw_xywh_rectangle_filled(WIDTH,HEIGHT,p2current_health,-20,arcade.color.GREEN),
-    arcade.draw_text('player2',WIDTH-60,HEIGHT- 35,arcade.color.BLACK)
+    arcade.draw_text('player1',WIDTH-60,HEIGHT- 35,arcade.color.BLACK)
 
 def instruction_screen(instructions):
-    arcade.draw_text('for player1 use WASD keys to move. for player 2 use the arrow keys',0,HEIGHT/1.5,arcade.color.BLACK,25),
-    arcade.draw_text('for player 1 you fire with q. for player 2 you fire with space',0,HEIGHT/1.9,arcade.color.BLACK,25),
+    arcade.draw_text('for player 2 use WASD keys to move. for player 1 use the arrow keys',0,HEIGHT/1.5,arcade.color.BLACK,25),
+    arcade.draw_text('for player 2 you fire with g. for player 1 you fire with RCTRL',0,HEIGHT/1.9,arcade.color.BLACK,25),
     arcade.draw_text('if your health gets too low you disapear',0,HEIGHT/2.3,arcade.color.BLACK,25)
     arcade.draw_text('have fun',0,HEIGHT/2.7,arcade.color.BLACK,25)
 
@@ -124,17 +137,27 @@ def update(delta_time):
     global p1gun_x
     global p2gun_x
     global WIDTH
+    global p1_reload_time
+    global p2_reload_time
+    global p1_mag
+    global p2_mag
 
     if current_screen == 'menue':
         player1_health = 5
+        p1current_health = 100
         player1_alive = True
         player2_health = 5
+        p2current_health = -100
         player2_alive = True
 
     if current_screen == 'Instructions':
         player1_alive = True
 
+    if p1_reload_time == True and p1_mag <= 10:
+        p1_mag += 0.1
 
+    if p2_reload_time == True and p2_mag <= 10:
+        p2_mag += 0.1
 
 
     if p2_up == True:
@@ -193,7 +216,12 @@ def update(delta_time):
         bullet1[0] -= 20
         bullet1[1] += 0
 
-     
+        if bullet1[0] == -15:
+            del bullet_list1[0]
+
+
+
+
     for bullet1 in bullet_list1:
         if bullet1[0] in range (p1_x, p1_x + 20) and  bullet1[1] in range (p1_y -20 , p1_y + 50 ) and current_screen == 'Game':
             player1_health -= 1
@@ -220,6 +248,9 @@ def update(delta_time):
         bullet2[0] += 20
         bullet2[1] += 0
 
+        if bullet2[0] == 1360:
+            del bullet_list2[0]
+
     if current_screen == 'end':
         p1current_health = 100
         p2current_health = -100
@@ -243,19 +274,27 @@ def on_draw():
         global p1_y
         global p2_x
         global p2_y
+        global RCTRL_pressed
+
 
         arcade.start_render()
         if current_screen == 'Game':
             player1_healthbar(player1_halthbar)
+            arcade.draw_text('current mag:{}'.format(p1_mag //1),1235,650,arcade.color.BLACK)
             player2_healthbar(player2_halthbar)
+            arcade.draw_text('current mag:{}'.format(p2_mag//1), 0, 650, arcade.color.BLACK)
 
         if current_screen == 'Instructions':
             instruction_screen(instructions)
             arcade.set_background_color(arcade.color.WHITE)
             draw_player1(player_1)
             draw_player2(player_2)
-            for bullet1 in bullet_list1:
-                arcade.draw_xywh_rectangle_filled(bullet1[0], bullet1[1] + 20, 40, 5, arcade.color.RED)
+            for bullet1 in bullet_list1 :
+                arcade.draw_xywh_rectangle_filled(bullet1[0], bullet1[1] + 20, 40, 5, arcade.color.RED),
+
+
+
+
             for bullet2 in bullet_list2:
                 arcade.draw_xywh_rectangle_filled(bullet2[0] - 10, bullet2[1] + 20, 40, 5, arcade.color.BLUE)
 
@@ -273,7 +312,7 @@ def on_draw():
             p1_y = 100
 
             p2_x = 1260
-            p2_y = 100
+            p2_y = 500
 
 
         if current_screen == 'Game':
@@ -316,23 +355,46 @@ def on_key_press(key, modifiers):
     global p1_right
     global p1_left
     global current_screen
+    global RCTRL_pressed
+    global G_pressed
+    global p1_mag
+    global p2_mag
+    global p1_reload_time
+    global p2_reload_time
 
     if key == arcade.key.ESCAPE:
         current_screen = 'menue'
+        p1_mag = 10
+        p2_mag = 10
 
-    if key == arcade.key.P and current_screen == 'menue':
+    if key == arcade.key.P and current_screen == 'menue' :
         current_screen = 'Game'
     if key == arcade.key.I:
         current_screen = 'Instructions'
 
 
     if current_screen == 'Game' or current_screen == 'Instructions':
-        if key == arcade.key.RCTRL:
+        if key == arcade.key.RCTRL and p1_mag >=1 and p1_reload_time == False:
             bullet_list1.append([p2_x,p2_y])
-        if key == arcade.key.G:
+            p1_mag -= 1
+
+
+        if key == arcade.key.R and p2_mag !=10 :
+            p2_reload_time = True
+
+
+        if key == arcade.key.G and p2_mag >= 1 and p2_reload_time == False:
             bullet_list2.append([p1_x,p1_y])
+            p2_mag -= 1
 
+        if key == arcade.key.RSHIFT and p1_mag != 10 :
+           p1_reload_time = True
 
+        if key == arcade.key.RCTRL:
+            RCTRL_pressed = True
+
+        if key == arcade.key.G:
+            G_pressed = True
 
         if key == arcade.key.W :
             p1_up = True
@@ -370,6 +432,26 @@ def on_key_release(key, modifiers):
     global p2_down
     global p2_right
     global p2_left
+    global RCTRL_pressed
+    global G_pressed
+    global p1_reload_time
+    global p2_reload_time
+    global p1_mag
+    global p2_mag
+    if key == arcade.key.RCTRL:
+        RCTRL_pressed = False
+
+    if key == arcade.key.G:
+        G_pressed = False
+
+    if key == arcade.key.R and p2_mag !=10:
+        p2_reload_time = False
+
+    if key == arcade.key.RSHIFT and p1_mag !=10 :
+        p1_reload_time = False
+
+
+
     if key == arcade.key.UP :
         p2_up = False
     if key == arcade.key.DOWN:
@@ -427,12 +509,16 @@ def setup():
 
 
 def draw_player1(player):
+    global p1_x
+    global p1_y
     arcade.draw_xywh_rectangle_filled(p1_x, p1_y, 20, 50, arcade.color.BLUE), \
     arcade.draw_circle_filled(p1_x  + 10, p1_y +50 , 20, arcade.color.BLACK), \
     arcade.draw_xywh_rectangle_filled( p1_x +20 , p1_y + 20, 10, 5, arcade.color.BLACK)
 
 
 def draw_player2(player):
+    global p2_x
+    global p2_y
     arcade.draw_xywh_rectangle_filled(p2_x, p2_y, 20, 50, arcade.color.RED), \
     arcade.draw_circle_filled(p2_x + 10, p2_y + 50, 20, arcade.color.BLACK), \
     arcade.draw_xywh_rectangle_filled(p2_x  - 10, p2_y + 20, 10, 5, arcade.color.BLACK)
